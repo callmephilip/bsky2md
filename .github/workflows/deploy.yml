@@ -25,9 +25,6 @@ jobs:
       # - name: Tests
       #   run: deno test --allow-all
 
-      - name: Publish package
-        run: npx jsr publish
-
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
