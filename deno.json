@@ -1,0 +1,14 @@
+{
+  "imports": {
+    "@atproto/api": "npm:@atproto/api@^0.13.19",
+    "hono": "jsr:@hono/hono@^4.6.13"
+  },
+  "tasks": {
+    "start": "deno run --watch=true --allow-net ./bsky2md/playground.ts",
+    "export": "deno run -A --reload jsr:@jurassic/jurassic/export . && deno lint && deno fmt"
+  },
+  "compilerOptions": {
+    "jsx": "precompile",
+    "jsxImportSource": "hono/jsx"
+  }
+}
