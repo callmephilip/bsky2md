@@ -1,10 +1,11 @@
 {
   "imports": {
     "@atproto/api": "npm:@atproto/api@^0.13.19",
-    "hono": "jsr:@hono/hono@^4.6.13"
+    "hono": "jsr:@hono/hono@^4.6.13",
+    "bsky2md/": "./bsky2md/"
   },
   "tasks": {
-    "start": "deno run --watch=true --allow-net ./bsky2md/playground.ts",
+    "start": "deno run --watch=true --allow-all ./bsky2md/server.ts",
     "export": "deno run -A --reload jsr:@jurassic/jurassic/export . && deno lint && deno fmt"
   },
   "compilerOptions": {
