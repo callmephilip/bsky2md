@@ -6,15 +6,17 @@ import { downloadPostToMd } from "bsky2md/bsky.ts";
 const app = new Hono();
 
 app.get("/", async (c) => {
+  const md = await downloadPostToMd(c.req.query().url);
+  const html = md.replace(/\n/g, "<br>");
   return c.html(`
     <html>
       <head>
         <title>Hello Hono</title>
         <style>body {font-family: Arial, sans-serif; padding: 20px; background-color: #ffffff; }</style>
       </head>
-      <body><strong>
-      ${await downloadPostToMd(c.req.query().url)}
-      </strong></body>
+      <body><code>
+      ${html}
+      </code></body>
     </html>  
   `);
 });
