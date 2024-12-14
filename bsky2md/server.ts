@@ -10,6 +10,10 @@ const Layout = ({ children }: { children: string }) => `
   <head>
     <meta charset="UTF-8">
     <title>bsky2md</title>
+    <link rel="stylesheet" href="https://unpkg.com/blocks.css/dist/blocks.min.css" />
+    <style>
+      body {font-family: Arial, sans-serif; padding: 20px; background-color: #ffffff; }
+    </style>
   </head>
   <body>
     ${children}
@@ -32,7 +36,12 @@ app.get("/", (c) => {
   //   </html>
   // `);
   return c.html(
-    Layout({ children: `<h1>bsky2md</h1>` }),
+    Layout({
+      children: `
+      <h1>bsky2md</h1>
+      <button class="block">Hello, World!</button>
+    `,
+    }),
   );
 });
 Deno.serve(app.fetch);
