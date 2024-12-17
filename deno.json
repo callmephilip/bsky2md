@@ -15,7 +15,7 @@
     "project": "23c880c4-e832-4721-9121-5c6c59d8d951",
     "exclude": ["**/node_modules"],
     "include": [],
-    "entrypoint": "bsky2md/server.ts"
+    "entrypoint": "app.ts"
   },
   "publish": { "exclude": ["nbs/", "docs/"] },
   "lint": { "exclude": ["_docs", "docs"] }
