@@ -11,12 +11,6 @@
     "docs": "deno run -A --reload jsr:@jurassic/jurassic/docs . && deno lint && deno fmt",
     "runnbs": "deno run --allow-read --allow-env --allow-run jsr:@jurassic/jurassic/runnbs"
   },
-  "deploy": {
-    "project": "23c880c4-e832-4721-9121-5c6c59d8d951",
-    "exclude": ["**/node_modules", ".jurassic", "_docs"],
-    "include": [],
-    "entrypoint": "app.ts"
-  },
   "publish": { "exclude": ["nbs/", "docs/"] },
   "lint": { "exclude": ["_docs", "docs"] }
 }

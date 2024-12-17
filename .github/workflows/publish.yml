@@ -49,3 +49,7 @@ jobs:
           project: "bsky2md"
           entrypoint: "app.ts"
           root: "."
+          exclude: |
+            "**/node_modules"
+            ".jurassic"
+            "_docs"
