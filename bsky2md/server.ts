@@ -3,7 +3,7 @@
 import { Hono } from "hono";
 import { downloadPostToMd } from "bsky2md/bsky.ts";
 
-const app = new Hono();
+export const app = new Hono();
 
 const Layout = ({ children }: { children: string }) => `
   <html>
@@ -37,8 +37,11 @@ app.get("/", (c) => {
 app.post("/convert", async (c) => {
   // get the URL from the form
   // const url = c.req.body.url;
-  const d = await c.req.formData();
-  const md = await downloadPostToMd(d.get("url"));
+  const d = (await c.req.formData()).get("url");
+
+  if (!d) {
+    return c.html("<h1>URL is required</h1>");
+  }
+  const md = await downloadPostToMd(d.toString());
   return c.html(`<code>${md.replace(/\n/g, "<br>")}</code>`);
 });
-Deno.serve(app.fetch);

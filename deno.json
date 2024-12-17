@@ -1,18 +1,22 @@
 {
-  "entrypoint": "./bsky2md/server.ts",
+  "entrypoint": "./app.ts",
   "imports": {
-    "@atproto/api": "npm:@atproto/api@^0.13.19",
+    "@mary/bluesky-client": "jsr:@mary/bluesky-client@^0.5.27",
     "hono": "jsr:@hono/hono@^4.6.13",
     "bsky2md/": "./bsky2md/"
   },
   "tasks": {
-    "start": "deno run --watch=true --allow-all ./bsky2md/server.ts",
-    "build": "deno run -A --reload jsr:@jurassic/jurassic/export . && deno lint && deno fmt"
+    "build": "deno run -A --reload jsr:@jurassic/jurassic/export . && deno task runnbs && deno lint && deno fmt && deno task clean && deno test --allow-all",
+    "clean": "deno run --allow-read --allow-env --allow-write --allow-run jsr:@jurassic/jurassic/clean",
+    "docs": "deno run -A --reload jsr:@jurassic/jurassic/docs . && deno lint && deno fmt",
+    "runnbs": "deno run --allow-read --allow-env --allow-run jsr:@jurassic/jurassic/runnbs"
   },
   "deploy": {
     "project": "23c880c4-e832-4721-9121-5c6c59d8d951",
     "exclude": ["**/node_modules"],
     "include": [],
     "entrypoint": "bsky2md/server.ts"
-  }
+  },
+  "publish": { "exclude": ["nbs/", "docs/"] },
+  "lint": { "exclude": ["_docs", "docs"] }
 }
