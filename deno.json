@@ -13,7 +13,7 @@
   },
   "deploy": {
     "project": "23c880c4-e832-4721-9121-5c6c59d8d951",
-    "exclude": ["**/node_modules"],
+    "exclude": ["**/node_modules", ".jurassic"],
     "include": [],
     "entrypoint": "app.ts"
   },
