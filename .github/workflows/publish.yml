@@ -47,4 +47,5 @@ jobs:
         uses: denoland/deployctl@v1
         with:
           project: "bsky2md"
+          entrypoint: "app.ts"
           root: "."
