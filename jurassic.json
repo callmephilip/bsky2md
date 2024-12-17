@@ -12,9 +12,10 @@
         "provider": "local"
       },
       "nav": [],
+      "logo": "/logo.png",
       "sidebar": [
         {
-          "text": "🦕",
+          "text": "Guides",
           "items": [
             {
               "text": "Get started",
