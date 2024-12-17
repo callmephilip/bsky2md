@@ -43,10 +43,8 @@ jobs:
             git diff
             exit 1;
           fi
-
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
           project: "bsky2md"
-          entrypoint: "bsky2md/server.ts"
           root: "."
