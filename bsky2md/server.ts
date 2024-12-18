@@ -136,8 +136,6 @@ app.get("/", (c) => {
 });
 
 app.post("/convert", async (c) => {
-  // get the URL from the form
-  // const url = c.req.body.url;
   const d = (await c.req.formData()).get("url");
 
   if (!d) {
@@ -146,11 +144,7 @@ app.post("/convert", async (c) => {
   const md = await downloadPostToMd(d.toString());
   const converter = new showdown.Converter();
   const html = converter.makeHtml(md);
-  //   return c.html(`
-  //     <code>${md.replace(/\n/g, "<br>")}</code>
-  //     <hr />
-  // ${html}
-  //   `);
+
   return c.html(
     codeTabs([
       { id: "md", label: "md", code: md.replace(/\n/g, "<br>") },
@@ -173,5 +167,12 @@ app.post("/convert", async (c) => {
             }
          })();
       </script>`,
+  );
+});
+
+app.get("/profile/:handle/post/:postId", async (c) => {
+  const { handle, postId } = c.req.param();
+  return c.text(
+    await downloadPostToMd(`https://bsky.app/profile/${handle}/post/${postId}`),
   );
 });
