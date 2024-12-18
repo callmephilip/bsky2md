@@ -59,17 +59,50 @@ export const downloadThread = async (
       uri: await postURLToAtpURI(postUrl),
     },
   });
-  return unwrapThreadPosts(d.data.thread as Thread);
+  const r = unwrapThreadPosts(d.data.thread as Thread);
+  return r.sort(
+    (a: Post, b: Post) =>
+      new Date((a.record as PostRecord).createdAt).getTime() -
+      new Date((b.record as PostRecord).createdAt).getTime(),
+  );
 };
 export const postToMd = (post: Post): string => {
+  // console.log(">>>>>>> working on", post);
+
   const record = post.record as PostRecord;
   const text = record.text;
+  let richtext = text;
+
+  if (record.facets) {
+    for (const facet of record.facets) {
+      for (const feature of facet.features) {
+        if (feature.$type === "app.bsky.richtext.facet#link") {
+          const linkPlaceholder = text.slice(
+            facet.index.byteStart,
+            facet.index.byteEnd,
+          );
+          richtext = richtext.replace(
+            linkPlaceholder,
+            `[${linkPlaceholder}](${feature.uri})`,
+          );
+        }
+      }
+    }
+  }
+
   return `
     # ${post.author.displayName} (@${post.author.handle}) - ${record.createdAt}
 
-    ${text}
+    ${richtext}
   `;
 };
+
+// await Deno.jupyter.display(
+//   {
+//     "text/markdown": postToMd(posts[1]),
+//   },
+//   { raw: true }
+// );
 export const downloadPostToMd = async (postUrl: string): Promise<string> => {
   const posts = await downloadThread(postUrl);
 
