@@ -4,50 +4,122 @@ import { Hono } from "hono";
 import { downloadPostToMd } from "bsky2md/bsky.ts";
 import showdown from "showdown";
 
+const styles = `
+html { height: 100%; }
+body { background: pink; max-width: 1024px; margin: auto;  height: 100%; font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;  }
+
+.wrapper { display: flex; flex-direction: column; }
+
+header { margin-top: 20px; background-color: #ffffff; display: flex; align-items: center; height: 60px; padding: 0 16px; border-bottom: 4px dotted #000000; }
+header > :nth-child(1), header > :nth-child(3) { flex: 0 0 auto; }
+header > :nth-child(2) { flex: 1; padding-top: 28px;  padding-left: 10px; padding-right: 10px;}
+
+header > :nth-child(2) > input { width: 100%; }
+
+code { padding: 10px; width: 90%; display: block; overflow: hidden; line-height: 2rem; }
+
+code img { max-width: 600px; }
+
+main { display: flex; flex-direction: col; flex: 1; padding: 10px; }
+
+/* tabs from https://codepen.io/celcarpe/pen/VwZrJpj */
+
+.tabs { flex:1; display: flex; flex-wrap: wrap; width: 500px; }
+
+.tabs label { order: 1; display: flex; justify-content: center; align-items: center; padding: 1rem 2rem; margin-right: 0.2rem; cursor: pointer; background-color: pink; font-weight: bold; transition: background ease 0.3s;}
+.tabs .tab { order: 9; flex-grow: 1; width: 100%; height: 100%;display: none; padding: 1rem; background: #fff; padding: 20px; box-shadow: -10px 10px 0px 0px black; }
+
+.tabs input[type=radio] { display: none; }
+
+.tabs input[type=radio]:checked + label { background: #fff; }
+.tabs input[type=radio]:checked + label + .tab { display: block; }
+
+@media (max-width: 465px) { .tabs .tab, .tabs label { order: initial; } .tabs label { width: 100%; margin-left: 50px; } }
+
+.htmx-indicator{ opacity:0; transition: opacity 500ms ease-in; }
+.htmx-request .htmx-indicator{ opacity:1; }
+.htmx-request.htmx-indicator{ opacity:1; }
+.wrapper { height: 100%; }
+
+input[type="text"] { padding: 10px; }`;
+const loadingIndicator = () =>
+  `<img id="spinner" class="htmx-indicator" src="https://htmx.org/img/bars.svg" />`;
+
+type CodeTabSpec = {
+  id: string;
+  label: string;
+  code: string;
+};
+
+const codeTabs = (tabs: CodeTabSpec[]) => {
+  const ts = tabs.map(
+    (tab: CodeTabSpec, i: number) => `
+    <input type="radio" name="tabs" id="tab-${i}" ${
+      i == 0 ? 'checked="checked"' : ""
+    }>
+    <label for="tab-${i}">${tab.label}</label>
+    <div class="tab">
+      <div class="block" style="padding-bottom: 20px;">
+        <div style="text-align:right;">
+          <button role="copy-button" data-target="code-${tab.id}" class="block" style="float:right;">Copy</button>
+          <div style="clear:both;"></div>
+        </div>
+        <code id="code-${tab.id}">${tab.code}</code>
+      </div>
+    </div>`,
+  ).join("");
+  return `<div class="tabs">${ts}</div>`;
+};
+
 export const app = new Hono();
 
-const Layout = ({ children }: { children: string }) => `
+const Layout = (
+  { children, url }: { children: string; url: string | undefined },
+) => {
+  const header = url
+    ? `<input hx-indicator="#spinner" hx-post="/convert" name="url" hx-target="#result" value="${url}" type="text" class="block" placeholder="Enter URL" />`
+    : `<input hx-indicator="#spinner" hx-post="/convert" name="url" hx-target="#result" type="text" class="block" placeholder="Enter URL" />`;
+
+  const main = url
+    ? `
+  <main hx-indicator="#spinner" hx-post="/convert" hx-trigger="load" hx-vals='{"url": "${url}"}' hx-target="#result" id="result">${children}</main>
+`
+    : `
+  <main id="result">${children}</main>/
+`;
+
+  return `
   <html>
   <head>
     <meta charset="UTF-8">
     <title>bsky2md</title>
     <link rel="stylesheet" href="https://unpkg.com/blocks.css/dist/blocks.min.css" />
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <style>
-      body { padding: 20px; background-color: #ffffff; }
-      .htmx-indicator{
-        opacity:0;
-        transition: opacity 500ms ease-in;
-    }
-    .htmx-request .htmx-indicator{
-        opacity:1;
-    }
-    .htmx-request.htmx-indicator{
-        opacity:1;
-    }
-    </style>
+    <style>${styles}</style>
   </head>
   <body>
-    ${children}
+    <div class="wrapper">
+    <header>
+      <div class="block">BSK2MD</div>
+      <div>
+        ${header}
+        ${loadingIndicator()}
+      </div>
+      <button class="block">Go</button>
+    </header>
+      ${main}
+  </div>
   </body>
   </html>
 `;
+};
 
 app.get("/", (c) => {
   const url = c.req.query("url");
   return c.html(
     Layout({
-      children: url
-        ? `
-        <input hx-indicator="#spinner" hx-post="/convert" name="url" hx-target="#result" value="${url}" type="text" class="block" placeholder="Enter URL" />
-        <img class="htmx-indicator" src="https://htmx.org/img/bars.svg" id="spinner" /> 
-        <div hx-indicator="#spinner" hx-post="/convert" hx-trigger="load" hx-vals='{"url": "${url}"}' hx-target="#result" id="result"></div>
-      `
-        : `
-      <input hx-indicator="#spinner" hx-post="/convert" name="url" hx-target="#result" type="text" class="block" placeholder="Enter URL" />
-      <img class="htmx-indicator" src="https://htmx.org/img/bars.svg" id="spinner" /> 
-      <div hx-indicator="#spinner" id="result"></div>
-    `,
+      children: "",
+      url,
     }),
   );
 });
@@ -63,9 +135,27 @@ app.post("/convert", async (c) => {
   const md = await downloadPostToMd(d.toString());
   const converter = new showdown.Converter();
   const html = converter.makeHtml(md);
-  return c.html(`
-    <code>${md.replace(/\n/g, "<br>")}</code>
-    <hr />
-${html}
-  `);
+  //   return c.html(`
+  //     <code>${md.replace(/\n/g, "<br>")}</code>
+  //     <hr />
+  // ${html}
+  //   `);
+  return c.html(
+    codeTabs([
+      { id: "md", label: "md", code: md.replace(/\n/g, "<br>") },
+      { id: "html", label: "html", code: html },
+    ]) +
+      `<script>
+         (() => {
+            for (const b of document.querySelectorAll("button[role=copy-button]")) {
+              const c = document.getElementById(b.getAttribute("data-target")).innerHTML ;
+              b.addEventListener("click", function () {
+                navigator.clipboard.writeText(c);
+                b.innerHTML = 'Copied!';
+                setTimeout(() => { b.innerHTML = 'Copy'; }, 2000);
+              });
+            }
+         })();
+      </script>`,
+  );
 });
