@@ -68,19 +68,44 @@ export const downloadThread = async (
       new Date((b.record as PostRecord).createdAt).getTime(),
   );
 };
-export const postToMd = (post: Post): string => {
-  // console.log(">>>>>>> working on", post);
+// from https://github.com/mary-ext/skeetdeck/blob/aa0cb74c0ace489b79d2671c4b9e740ec21623c7/app/api/richtext/unicode.ts
 
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+
+interface UtfString {
+  u16: string;
+  u8: Uint8Array;
+}
+
+const createUtfString = (utf16: string): UtfString => {
+  return {
+    u16: utf16,
+    u8: encoder.encode(utf16),
+  };
+};
+
+// const getUtf8Length = (utf: UtfString) => {
+// 	return utf.u8.byteLength;
+// };
+
+const sliceUtf8 = (utf: UtfString, start?: number, end?: number) => {
+  return decoder.decode(utf.u8.slice(start, end));
+};
+export const postToMd = (post: Post): string => {
   const record = post.record as PostRecord;
   const text = record.text;
   let richtext = text;
   let embeds = "";
 
+  console.log(">>>>>>>>>>> text is", text);
+
   if (record.facets) {
     for (const facet of record.facets) {
       for (const feature of facet.features) {
         if (feature.$type === "app.bsky.richtext.facet#link") {
-          const linkPlaceholder = text.slice(
+          const linkPlaceholder = sliceUtf8(
+            createUtfString(text),
             facet.index.byteStart,
             facet.index.byteEnd,
           );
@@ -105,18 +130,22 @@ export const postToMd = (post: Post): string => {
   const [d, t] = record.createdAt.split("T");
   const [h, m] = t.split(":");
 
+  console.log(">>>>", "lines", richtext.split("\n"));
+
   return [
-    `> [${post.author.displayName}](https://bsky.app/profile/${post.author.handle}) **${d} ${
-      [h, m].join(":")
+    `> [${post.author.displayName} - @${post.author.handle}](https://bsky.app/profile/${post.author.handle}) **${d} ${
+      [h, m].join(
+        ":",
+      )
     }**`,
-    richtext,
+    ...richtext.split("\n").filter((l: string) => l.trim() !== ""),
     embeds,
   ].join("\n\n");
 };
 
 // await Deno.jupyter.display(
 //   {
-//     "text/markdown": postToMd(posts[3]),
+//     "text/markdown": postToMd(posts[1]),
 //   },
 //   { raw: true }
 // );
