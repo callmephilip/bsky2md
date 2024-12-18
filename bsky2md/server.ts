@@ -13,6 +13,16 @@ const Layout = ({ children }: { children: string }) => `
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <style>
       body { padding: 20px; background-color: #ffffff; }
+      .htmx-indicator{
+        opacity:0;
+        transition: opacity 500ms ease-in;
+    }
+    .htmx-request .htmx-indicator{
+        opacity:1;
+    }
+    .htmx-request.htmx-indicator{
+        opacity:1;
+    }
     </style>
   </head>
   <body>
@@ -22,12 +32,19 @@ const Layout = ({ children }: { children: string }) => `
 `;
 
 app.get("/", (c) => {
+  const url = c.req.query("url");
   return c.html(
     Layout({
-      children: `
-      <h1>bsky2md - new stuff</h1>
-      <input hx-post="/convert" name="url" hx-target="#result" type="text" class="block" placeholder="Enter URL" />
-      <div id="result"></div>
+      children: url
+        ? `
+        <input hx-indicator="#spinner" hx-post="/convert" name="url" hx-target="#result" value="${url}" type="text" class="block" placeholder="Enter URL" />
+        <img class="htmx-indicator" src="https://htmx.org/img/bars.svg" id="spinner" /> 
+        <div hx-indicator="#spinner" hx-post="/convert" hx-trigger="load" hx-vals='{"url": "${url}"}' hx-target="#result" id="result"></div>
+      `
+        : `
+      <input hx-indicator="#spinner" hx-post="/convert" name="url" hx-target="#result" type="text" class="block" placeholder="Enter URL" />
+      <img class="htmx-indicator" src="https://htmx.org/img/bars.svg" id="spinner" /> 
+      <div hx-indicator="#spinner" id="result"></div>
     `,
     }),
   );
