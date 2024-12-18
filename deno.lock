@@ -6,7 +6,8 @@
     "jsr:@std/assert@*": "1.0.9",
     "jsr:@std/dotenv@*": "0.225.3",
     "jsr:@std/internal@^1.0.5": "1.0.5",
-    "npm:@atproto/api@*": "0.13.19"
+    "npm:@atproto/api@*": "0.13.19",
+    "npm:showdown@^2.1.0": "2.1.0"
   },
   "jsr": {
     "@hono/hono@4.6.13": {
@@ -74,6 +75,9 @@
     "await-lock@2.2.2": {
       "integrity": "sha512-aDczADvlvTGajTDjcjpJMqRkOF6Qdz3YbPZm/PyW6tKPkx2hlYBzxMhEywM/tU72HrVZjgl5VCdRuMlA7pZ8Gw=="
     },
+    "commander@9.5.0": {
+      "integrity": "sha512-KRs7WVDKg86PWiuAqhDrAQnTXZKraVcCc6vFdL14qrZ/DcWwuRo7VoiYXalXO7S5GKpqYiVEwCbgFDfxNHKJBQ=="
+    },
     "graphemer@1.4.0": {
       "integrity": "sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag=="
     },
@@ -82,6 +86,12 @@
     },
     "multiformats@9.9.0": {
       "integrity": "sha512-HoMUjhH9T8DDBNT+6xzkrd9ga/XiBI4xLr58LJACwK6G3HTOPeMz4nB4KJs33L2BelrIJa7P0VuNaVF3hMYfjg=="
+    },
+    "showdown@2.1.0": {
+      "integrity": "sha512-/6NVYu4U819R2pUIk79n67SYgJHWCce0a5xTP979WbNp0FL9MN1I1QK662IDU1b6JzKTvmhgI7T7JYIxBi3kMQ==",
+      "dependencies": [
+        "commander"
+      ]
     },
     "tlds@1.255.0": {
       "integrity": "sha512-tcwMRIioTcF/FcxLev8MJWxCp+GUALRhFEqbDoZrnowmKSGqPrl5pqS+Sut2m8BgJ6S4FExCSSpGffZ0Tks6Aw=="
@@ -109,7 +119,8 @@
   "workspace": {
     "dependencies": [
       "jsr:@hono/hono@^4.6.13",
-      "jsr:@mary/bluesky-client@~0.5.27"
+      "jsr:@mary/bluesky-client@~0.5.27",
+      "npm:showdown@^2.1.0"
     ]
   }
 }

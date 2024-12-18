@@ -2,6 +2,8 @@
 
 import { Hono } from "hono";
 import { downloadPostToMd } from "bsky2md/bsky.ts";
+import showdown from "showdown";
+
 export const app = new Hono();
 
 const Layout = ({ children }: { children: string }) => `
@@ -59,5 +61,11 @@ app.post("/convert", async (c) => {
     return c.html("<h1>URL is required</h1>");
   }
   const md = await downloadPostToMd(d.toString());
-  return c.html(`<code>${md.replace(/\n/g, "<br>")}</code>`);
+  const converter = new showdown.Converter();
+  const html = converter.makeHtml(md);
+  return c.html(`
+    <code>${md.replace(/\n/g, "<br>")}</code>
+    <hr />
+${html}
+  `);
 });

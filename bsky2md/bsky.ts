@@ -2,6 +2,7 @@
 
 import { BskyXRPC } from "@mary/bluesky-client";
 import type {
+  AppBskyEmbedImages,
   AppBskyFeedDefs,
   AppBskyFeedPost,
 } from "@mary/bluesky-client/lexicons";
@@ -9,6 +10,7 @@ import type {
 type Thread = AppBskyFeedDefs.ThreadViewPost;
 type Post = AppBskyFeedDefs.PostView;
 type PostRecord = AppBskyFeedPost.Record;
+type EmbedImages = AppBskyEmbedImages.View;
 
 const rpc = new BskyXRPC({ service: "https://public.api.bsky.app" });
 const postURLToAtpURI = async (
@@ -72,6 +74,7 @@ export const postToMd = (post: Post): string => {
   const record = post.record as PostRecord;
   const text = record.text;
   let richtext = text;
+  let embeds = "";
 
   if (record.facets) {
     for (const facet of record.facets) {
@@ -90,23 +93,30 @@ export const postToMd = (post: Post): string => {
     }
   }
 
-  return `
-    # ${post.author.displayName} (@${post.author.handle}) - ${record.createdAt}
+  if (post.embed && post.embed.$type === "app.bsky.embed.images#view") {
+    const e = post.embed as EmbedImages;
+    for (const image of e.images) {
+      embeds += `![${
+        image.alt || "no image description"
+      }](${image.fullsize})\n`;
+    }
+  }
 
-    ${richtext}
-  `;
+  return [
+    `# ${post.author.displayName} (@${post.author.handle}) - ${record.createdAt}`,
+    richtext,
+    embeds,
+  ].join("\n");
 };
 
 // await Deno.jupyter.display(
 //   {
-//     "text/markdown": postToMd(posts[1]),
+//     "text/markdown": postToMd(posts[3]),
 //   },
 //   { raw: true }
 // );
 export const downloadPostToMd = async (postUrl: string): Promise<string> => {
   const posts = await downloadThread(postUrl);
 
-  return posts.reduce((acc, post) => {
-    return acc + postToMd(post);
-  }, "");
+  return posts.map((post) => postToMd(post)).join("\n\n");
 };
