@@ -2,7 +2,6 @@
 
 import { Hono } from "hono";
 import { downloadPostToMd } from "bsky2md/bsky.ts";
-
 export const app = new Hono();
 
 const Layout = ({ children }: { children: string }) => `
@@ -26,7 +25,7 @@ app.get("/", (c) => {
   return c.html(
     Layout({
       children: `
-      <h1>bsky2md</h1>
+      <h1>bsky2md - new stuff</h1>
       <input hx-post="/convert" name="url" hx-target="#result" type="text" class="block" placeholder="Enter URL" />
       <div id="result"></div>
     `,
