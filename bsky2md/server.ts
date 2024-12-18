@@ -116,6 +116,17 @@ const Layout = (
 
 app.get("/", (c) => {
   const url = c.req.query("url");
+
+  if (!url) {
+    return c.redirect(
+      `/?url=${
+        encodeURIComponent(
+          "https://bsky.app/profile/xenova.bsky.social/post/3ldlswuvnxs2i",
+        )
+      }`,
+    );
+  }
+
   return c.html(
     Layout({
       children: "",
@@ -146,9 +157,14 @@ app.post("/convert", async (c) => {
       { id: "html", label: "html", code: html },
     ]) +
       `<script>
+          function decodeHTML(html) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = html;
+            return txt.value;
+          }
          (() => {
             for (const b of document.querySelectorAll("button[role=copy-button]")) {
-              const c = document.getElementById(b.getAttribute("data-target")).innerHTML.replace(/<br>/g, "\\n");
+              const c = decodeHTML(document.getElementById(b.getAttribute("data-target")).innerHTML.replace(/<br>/g, "\\n"));
               b.addEventListener("click", function () {
                 navigator.clipboard.writeText(c);
                 b.innerHTML = 'Copied!';
