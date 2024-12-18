@@ -52,25 +52,26 @@ type CodeTabSpec = {
 };
 
 const codeTabs = (tabs: CodeTabSpec[]) => {
-  const ts = tabs.map(
-    (tab: CodeTabSpec, i: number) => `
+  const ts = tabs
+    .map(
+      (tab: CodeTabSpec, i: number) => `
     <input type="radio" name="tabs" id="tab-${i}" ${
-      i == 0 ? 'checked="checked"' : ""
-    }>
+        i == 0 ? 'checked="checked"' : ""
+      }>
     <label for="tab-${i}">${tab.label}</label>
     <div class="tab">
       <div class="block" style="padding-bottom: 20px;">
         <div style="text-align:right;">
           <button role="copy-button" data-target="code-${tab.id}" class="block" style="float:right;">Copy</button>
-          <div style="clear:both;"></div>
+          <div style="clear:both; border-bottom: 2px dotted #000000;"></div>
         </div>
         <code id="code-${tab.id}">${tab.code}</code>
       </div>
     </div>`,
-  ).join("");
+    )
+    .join("");
   return `<div class="tabs">${ts}</div>`;
 };
-
 export const app = new Hono();
 
 const Layout = (
@@ -148,7 +149,7 @@ app.post("/convert", async (c) => {
       `<script>
          (() => {
             for (const b of document.querySelectorAll("button[role=copy-button]")) {
-              const c = document.getElementById(b.getAttribute("data-target")).innerHTML ;
+              const c = document.getElementById(b.getAttribute("data-target")).innerHTML.replace(/<br>/g, "\\n");
               b.addEventListener("click", function () {
                 navigator.clipboard.writeText(c);
                 b.innerHTML = 'Copied!';
