@@ -2,6 +2,7 @@
 
 import { BskyXRPC } from "@mary/bluesky-client";
 import type {
+  AppBskyEmbedExternal,
   AppBskyEmbedImages,
   AppBskyFeedDefs,
   AppBskyFeedPost,
@@ -11,11 +12,12 @@ type Thread = AppBskyFeedDefs.ThreadViewPost;
 type Post = AppBskyFeedDefs.PostView;
 type PostRecord = AppBskyFeedPost.Record;
 type EmbedImages = AppBskyEmbedImages.View;
+type EmbedExternal = AppBskyEmbedExternal.View;
 
 const rpc = new BskyXRPC({ service: "https://public.api.bsky.app" });
 const postURLToAtpURI = async (
   postUrl: string,
-): Promise<string> => {
+): Promise<[string, string]> => {
   const urlParts = new URL(postUrl);
   const pathParts = urlParts.pathname.split("/");
   const h = await rpc.get("com.atproto.identity.resolveHandle", {
@@ -24,7 +26,7 @@ const postURLToAtpURI = async (
     },
   });
 
-  return `at://${h.data.did}/app.bsky.feed.post/${pathParts[4]}`;
+  return [`at://${h.data.did}/app.bsky.feed.post/${pathParts[4]}`, h.data.did];
 };
 const unwrapThreadPosts = (
   thread: Thread,
@@ -53,20 +55,29 @@ const unwrapThreadPosts = (
   return posts;
 };
 
+type ThreadData = {
+  handle: string;
+  posts: Post[];
+};
+
 export const downloadThread = async (
   postUrl: string,
-) => {
+): Promise<ThreadData> => {
+  const [uri, handle] = await postURLToAtpURI(postUrl);
   const d = await rpc.get("app.bsky.feed.getPostThread", {
     params: {
-      uri: await postURLToAtpURI(postUrl),
+      uri,
     },
   });
   const r = unwrapThreadPosts(d.data.thread as Thread);
-  return r.sort(
-    (a: Post, b: Post) =>
-      new Date((a.record as PostRecord).createdAt).getTime() -
-      new Date((b.record as PostRecord).createdAt).getTime(),
-  );
+  return {
+    handle,
+    posts: r.sort(
+      (a: Post, b: Post) =>
+        new Date((a.record as PostRecord).createdAt).getTime() -
+        new Date((b.record as PostRecord).createdAt).getTime(),
+    ),
+  };
 };
 // from https://github.com/mary-ext/skeetdeck/blob/aa0cb74c0ace489b79d2671c4b9e740ec21623c7/app/api/richtext/unicode.ts
 
@@ -92,7 +103,47 @@ const createUtfString = (utf16: string): UtfString => {
 const sliceUtf8 = (utf: UtfString, start?: number, end?: number) => {
   return decoder.decode(utf.u8.slice(start, end));
 };
-export const postToMd = (post: Post): string => {
+const externalEmbedToMarkdown = (
+  embed: EmbedExternal,
+  authorDid: string,
+): string => {
+  const { title, description, uri, thumb } = embed.external;
+
+  console.log(embed);
+
+  let thumbUrl: string | undefined;
+
+  if (typeof thumb === "string") {
+    thumbUrl = thumb;
+  } else if (thumb) {
+    thumbUrl =
+      // @ts-ignore not sure why this is failing
+      `https://cdn.bsky.app/img/feed_thumbnail/plain/${authorDid}/${thumb.ref.$link}@jpeg`;
+  }
+
+  const thumbImage = thumbUrl ? `![${title}](${thumbUrl})` : null;
+
+  return [`### [${title}](${uri})`, description, thumbImage || ""]
+    .map((l: string) => `> ${l}`)
+    .join("\n");
+};
+
+// await (async () => {
+//   const { posts, handle } = await downloadThread(
+//       "https://bsky.app/profile/jason.energy/post/3ldllxneijk2d"
+//     );
+
+//   return Deno.jupyter.display(
+//     {
+//       "text/markdown": externalEmbedToMarkdown(
+//         posts[0].record.embed as EmbedExternal,
+//         handle
+//       ),
+//     },
+//     { raw: true }
+//   );
+// })();
+export const postToMd = (post: Post, handle: string): string => {
   const record = post.record as PostRecord;
   const text = record.text;
   let richtext = text;
@@ -128,12 +179,19 @@ export const postToMd = (post: Post): string => {
     }
   }
 
-  if (post.embed && post.embed.$type === "app.bsky.embed.images#view") {
-    const e = post.embed as EmbedImages;
-    for (const image of e.images) {
-      embeds += `![${
-        image.alt || "no image description"
-      }](${image.fullsize})\n`;
+  if (post.embed) {
+    if (post.embed.$type === "app.bsky.embed.images#view") {
+      const e = post.embed as EmbedImages;
+      for (const image of e.images) {
+        embeds += `![${
+          image.alt || "no image description"
+        }](${image.fullsize})\n`;
+      }
+    } else if (post.embed.$type === "app.bsky.embed.external#view") {
+      embeds += externalEmbedToMarkdown(
+        post.embed as EmbedExternal,
+        handle,
+      );
     }
   }
 
@@ -153,12 +211,12 @@ export const postToMd = (post: Post): string => {
 
 // await Deno.jupyter.display(
 //   {
-//     "text/markdown": postToMd(posts[0]),
+//     "text/markdown": postToMd(posts[0], handle),
 //   },
 //   { raw: true }
 // );
 export const downloadPostToMd = async (postUrl: string): Promise<string> => {
-  const posts = await downloadThread(postUrl);
+  const { posts, handle } = await downloadThread(postUrl);
 
-  return posts.map((post) => postToMd(post)).join("\n\n");
+  return posts.map((post) => postToMd(post, handle)).join("\n\n");
 };
