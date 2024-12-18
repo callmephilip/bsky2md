@@ -98,8 +98,6 @@ export const postToMd = (post: Post): string => {
   let richtext = text;
   let embeds = "";
 
-  console.log(">>>>>>>>>>> text is", text);
-
   if (record.facets) {
     for (const facet of record.facets) {
       for (const feature of facet.features) {
@@ -129,8 +127,6 @@ export const postToMd = (post: Post): string => {
 
   const [d, t] = record.createdAt.split("T");
   const [h, m] = t.split(":");
-
-  console.log(">>>>", "lines", richtext.split("\n"));
 
   return [
     `> [${post.author.displayName} - @${post.author.handle}](https://bsky.app/profile/${post.author.handle}) **${d} ${
