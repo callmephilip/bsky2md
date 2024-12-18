@@ -3,18 +3,17 @@
 import { Hono } from "hono";
 import { downloadPostToMd } from "bsky2md/bsky.ts";
 import showdown from "showdown";
-
 const styles = `
 html { height: 100%; }
 body { background: pink; max-width: 1024px; margin: auto;  height: 100%; font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;  }
 
 .wrapper { display: flex; flex-direction: column; }
 
-header { margin-top: 20px; background-color: #ffffff; display: flex; align-items: center; height: 60px; padding: 0 16px; border-bottom: 4px dotted #000000; }
+header { margin-top: 20px; display: flex; align-items: center; height: 60px; padding: 0 16px; }
 header > :nth-child(1), header > :nth-child(3) { flex: 0 0 auto; }
 header > :nth-child(2) { flex: 1; padding-top: 28px;  padding-left: 10px; padding-right: 10px;}
 
-header > :nth-child(2) > input { width: 100%; }
+header > :nth-child(2) > input { width: 100%; margin-top: 0px; }
 
 code { padding: 10px; width: 90%; display: block; overflow: hidden; line-height: 2rem; }
 
