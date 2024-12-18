@@ -102,11 +102,16 @@ export const postToMd = (post: Post): string => {
     }
   }
 
+  const [d, t] = record.createdAt.split("T");
+  const [h, m] = t.split(":");
+
   return [
-    `# ${post.author.displayName} (@${post.author.handle}) - ${record.createdAt}`,
+    `> [${post.author.displayName}](https://bsky.app/profile/${post.author.handle}) **${d} ${
+      [h, m].join(":")
+    }**`,
     richtext,
     embeds,
-  ].join("\n");
+  ].join("\n\n");
 };
 
 // await Deno.jupyter.display(
