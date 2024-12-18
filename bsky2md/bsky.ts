@@ -98,6 +98,8 @@ export const postToMd = (post: Post): string => {
   let richtext = text;
   let embeds = "";
 
+  console.log(record);
+
   if (record.facets) {
     for (const facet of record.facets) {
       for (const feature of facet.features) {
@@ -110,6 +112,16 @@ export const postToMd = (post: Post): string => {
           richtext = richtext.replace(
             linkPlaceholder,
             `[${linkPlaceholder}](${feature.uri})`,
+          );
+        } else if (feature.$type === "app.bsky.richtext.facet#mention") {
+          const mentionPlaceholder = sliceUtf8(
+            createUtfString(text),
+            facet.index.byteStart,
+            facet.index.byteEnd,
+          );
+          richtext = richtext.replace(
+            mentionPlaceholder,
+            `[${mentionPlaceholder}](https://bsky.app/profile/${feature.did})`,
           );
         }
       }
@@ -141,7 +153,7 @@ export const postToMd = (post: Post): string => {
 
 // await Deno.jupyter.display(
 //   {
-//     "text/markdown": postToMd(posts[1]),
+//     "text/markdown": postToMd(posts[0]),
 //   },
 //   { raw: true }
 // );
