@@ -4,9 +4,9 @@
   "docsInputPath": "docs",
   "docsOutputPath": "_docs",
   "vitepress": {
-    "title": "Jurassic",
-    "description": "Jurassic docs",
-    "base": "/jurassic/",
+    "title": "Bsky2md",
+    "description": "Convert Bsky threads to markdown docs",
+    "base": "/bsky2md/",
     "themeConfig": {
       "search": {
         "provider": "local"
@@ -25,7 +25,7 @@
         }
       ],
       "socialLinks": [
-        { "icon": "github", "link": "https://github.com/callmephilip/jurassic" }
+        { "icon": "github", "link": "https://github.com/callmephilip/bsky2md" }
       ]
     }
   }
