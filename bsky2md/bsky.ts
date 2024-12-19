@@ -6,13 +6,22 @@ import type {
   AppBskyEmbedImages,
   AppBskyFeedDefs,
   AppBskyFeedPost,
+  AppBskyRichtextFacet,
 } from "@mary/bluesky-client/lexicons";
+
+type UnwrapArray<T> = T extends (infer V)[] ? V : never;
+
+export type Facet = AppBskyRichtextFacet.Main;
+export type FacetFeature = UnwrapArray<Facet["features"]>;
 
 type Thread = AppBskyFeedDefs.ThreadViewPost;
 type Post = AppBskyFeedDefs.PostView;
 type PostRecord = AppBskyFeedPost.Record;
 type EmbedImages = AppBskyEmbedImages.View;
 type EmbedExternal = AppBskyEmbedExternal.View;
+type LinkFeature = AppBskyRichtextFacet.Link;
+type MentionFeature = AppBskyRichtextFacet.Mention;
+// type TagFeature = AppBskyRichtextFacet.Tag;
 
 const rpc = new BskyXRPC({ service: "https://public.api.bsky.app" });
 const postURLToAtpURI = async (
@@ -96,13 +105,15 @@ const createUtfString = (utf16: string): UtfString => {
   };
 };
 
-// const getUtf8Length = (utf: UtfString) => {
-// 	return utf.u8.byteLength;
-// };
+const getUtf8Length = (utf: UtfString) => {
+  return utf.u8.byteLength;
+};
 
 const sliceUtf8 = (utf: UtfString, start?: number, end?: number) => {
   return decoder.decode(utf.u8.slice(start, end));
 };
+
+// replace
 const externalEmbedToMarkdown = (
   embed: EmbedExternal,
   authorDid: string,
@@ -127,57 +138,94 @@ const externalEmbedToMarkdown = (
     .map((l: string) => `> ${l}`)
     .join("\n");
 };
+export interface RichtextSegment {
+  text: string;
+  feature: FacetFeature | undefined;
+}
 
-// await (async () => {
-//   const { posts, handle } = await downloadThread(
-//       "https://bsky.app/profile/jason.energy/post/3ldllxneijk2d"
-//     );
+const createSegment = (
+  text: string,
+  feature: FacetFeature | undefined,
+): RichtextSegment => {
+  return { text: text, feature: feature };
+};
 
-//   return Deno.jupyter.display(
-//     {
-//       "text/markdown": externalEmbedToMarkdown(
-//         posts[0].record.embed as EmbedExternal,
-//         handle
-//       ),
-//     },
-//     { raw: true }
-//   );
-// })();
+export const segmentRichText = (
+  rtText: string,
+  facets: Facet[] | undefined,
+): RichtextSegment[] => {
+  if (facets === undefined || facets.length === 0) {
+    return [createSegment(rtText, undefined)];
+  }
+
+  const text = createUtfString(rtText);
+
+  const segments: RichtextSegment[] = [];
+  const length = getUtf8Length(text);
+
+  const facetsLength = facets.length;
+
+  let textCursor = 0;
+  let facetCursor = 0;
+
+  do {
+    const facet = facets[facetCursor];
+    const { byteStart, byteEnd } = facet.index;
+
+    if (textCursor < byteStart) {
+      segments.push(
+        createSegment(sliceUtf8(text, textCursor, byteStart), undefined),
+      );
+    } else if (textCursor > byteStart) {
+      facetCursor++;
+      continue;
+    }
+
+    if (byteStart < byteEnd) {
+      const subtext = sliceUtf8(text, byteStart, byteEnd);
+      const features = facet.features;
+
+      if (features.length === 0 || subtext.trim().length === 0) {
+        segments.push(createSegment(subtext, undefined));
+      } else {
+        segments.push(createSegment(subtext, features[0]));
+      }
+    }
+
+    textCursor = byteEnd;
+    facetCursor++;
+  } while (facetCursor < facetsLength);
+
+  if (textCursor < length) {
+    segments.push(
+      createSegment(sliceUtf8(text, textCursor, length), undefined),
+    );
+  }
+
+  return segments;
+};
+
+const processFacets = (text: string, facets: Facet[] | undefined): string => {
+  return segmentRichText(text, facets).reduce((acc, segment) => {
+    const { text, feature } = segment;
+
+    if (feature?.$type === "app.bsky.richtext.facet#link") {
+      return acc + `[${text}](${feature.uri})`;
+    } else if (feature?.$type === "app.bsky.richtext.facet#mention") {
+      return acc + `[${text}](https://bsky.app/profile/${feature.did})`;
+    }
+
+    return acc + segment.text;
+  }, "");
+};
+
 export const postToMd = (post: Post, handle: string): string => {
   const record = post.record as PostRecord;
   const text = record.text;
   let richtext = text;
   let embeds = "";
 
-  console.log(record);
-
-  if (record.facets) {
-    for (const facet of record.facets) {
-      for (const feature of facet.features) {
-        if (feature.$type === "app.bsky.richtext.facet#link") {
-          const linkPlaceholder = sliceUtf8(
-            createUtfString(text),
-            facet.index.byteStart,
-            facet.index.byteEnd,
-          );
-          richtext = richtext.replace(
-            linkPlaceholder,
-            `[${linkPlaceholder}](${feature.uri})`,
-          );
-        } else if (feature.$type === "app.bsky.richtext.facet#mention") {
-          const mentionPlaceholder = sliceUtf8(
-            createUtfString(text),
-            facet.index.byteStart,
-            facet.index.byteEnd,
-          );
-          richtext = richtext.replace(
-            mentionPlaceholder,
-            `[${mentionPlaceholder}](https://bsky.app/profile/${feature.did})`,
-          );
-        }
-      }
-    }
-  }
+  richtext = processFacets(text, record.facets);
 
   if (post.embed) {
     if (post.embed.$type === "app.bsky.embed.images#view") {
@@ -211,7 +259,7 @@ export const postToMd = (post: Post, handle: string): string => {
 
 // await Deno.jupyter.display(
 //   {
-//     "text/markdown": postToMd(posts[0], handle),
+//     "text/markdown": postToMd(posts[4], handle),
 //   },
 //   { raw: true }
 // );
