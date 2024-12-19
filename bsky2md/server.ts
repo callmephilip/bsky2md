@@ -9,6 +9,9 @@ body { background: pink; max-width: 1024px; margin: auto;  height: 100%; font-fa
 
 .wrapper { display: flex; flex-direction: column; }
 
+ul.meta-links { display: flex; justify-content: center; list-style-type: none; padding: 0; }
+ul.meta-links li { margin: 0 10px; }
+
 header { margin-top: 20px; display: flex; align-items: center; height: 60px; padding: 0 16px; }
 header > :nth-child(1), header > :nth-child(3) { flex: 0 0 auto; }
 header > :nth-child(2) { flex: 1; padding-top: 28px;  padding-left: 10px; padding-right: 10px;}
@@ -99,16 +102,20 @@ const Layout = (
   </head>
   <body>
     <div class="wrapper">
-    <header>
-      <div class="block">BSK2MD</div>
-      <div>
-        ${header}
-        ${loadingIndicator()}
-      </div>
-      <button class="block">Go</button>
-    </header>
+      <ul class="meta-links">
+        <li><a href="https://github.com/callmephilip/bsky2md">Source code</a></li>
+        <li><a href="https://bsky.app/profile/callmephilip.com/post/3ld26pvzddk2l">Dev journal</a></li>
+      </ul>
+      <header>
+        <div class="block">BSK2MD</div>
+        <div>
+          ${header}
+          ${loadingIndicator()}
+        </div>
+        <button class="block">Go</button>
+      </header>
       ${main}
-  </div>
+    </div>
   </body>
   </html>
 `;
