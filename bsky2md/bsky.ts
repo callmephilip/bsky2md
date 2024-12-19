@@ -78,14 +78,9 @@ export const downloadThread = async (
       uri,
     },
   });
-  const r = unwrapThreadPosts(d.data.thread as Thread);
   return {
     handle,
-    posts: r.sort(
-      (a: Post, b: Post) =>
-        new Date((a.record as PostRecord).createdAt).getTime() -
-        new Date((b.record as PostRecord).createdAt).getTime(),
-    ),
+    posts: unwrapThreadPosts(d.data.thread as Thread),
   };
 };
 // from https://github.com/mary-ext/skeetdeck/blob/aa0cb74c0ace489b79d2671c4b9e740ec21623c7/app/api/richtext/unicode.ts
@@ -138,6 +133,8 @@ const externalEmbedToMarkdown = (
     .map((l: string) => `> ${l}`)
     .join("\n");
 };
+// from https://github.com/mary-ext/skeetdeck/blob/aa0cb74c0ace489b79d2671c4b9e740ec21623c7/app/api/richtext/segmentize.ts
+
 export interface RichtextSegment {
   text: string;
   feature: FacetFeature | undefined;
