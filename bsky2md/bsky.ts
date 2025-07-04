@@ -68,6 +68,56 @@ type ThreadData = {
   posts: Post[];
 };
 
+function reconstructThread(posts: Post[]): Post[] {
+  const sortChronologically = (a: Post, b: Post): number =>
+    // @ts-ignore record type is unknown
+    new Date(a.record.createdAt).getTime() -
+    // @ts-ignore record type is unknown
+    new Date(b.record.createdAt).getTime();
+  const postMap = new Map<string, Post>();
+  const rootPosts: Post[] = [];
+  const childrenMap = new Map<string, Post[]>();
+
+  for (const post of posts) {
+    postMap.set(post.uri, post);
+    // @ts-ignore record type is unknown
+    if (!post.record.reply) {
+      rootPosts.push(post);
+    } else {
+      // @ts-ignore record type is unknown
+      const parentUri = post.record.reply.parent.uri;
+      if (!childrenMap.has(parentUri)) {
+        childrenMap.set(parentUri, []);
+      }
+      childrenMap.get(parentUri)!.push(post);
+    }
+  }
+
+  rootPosts.sort(sortChronologically);
+
+  for (const children of childrenMap.values()) {
+    children.sort(
+      sortChronologically,
+    );
+  }
+
+  const result: Post[] = [];
+
+  function addPostAndReplies(post: Post) {
+    result.push(post);
+    const children = childrenMap.get(post.uri) || [];
+    for (const child of children) {
+      addPostAndReplies(child);
+    }
+  }
+
+  for (const rootPost of rootPosts) {
+    addPostAndReplies(rootPost);
+  }
+
+  return result;
+}
+
 export const downloadThread = async (
   postUrl: string,
 ): Promise<ThreadData> => {
@@ -79,7 +129,7 @@ export const downloadThread = async (
   });
   return {
     handle,
-    posts: unwrapThreadPosts(d.data.thread as Thread),
+    posts: reconstructThread(unwrapThreadPosts(d.data.thread as Thread)),
   };
 };
 // from https://github.com/mary-ext/skeetdeck/blob/aa0cb74c0ace489b79d2671c4b9e740ec21623c7/app/api/richtext/unicode.ts
@@ -242,7 +292,7 @@ export const postToMd = (post: Post, handle: string): string => {
   const [d, t] = record.createdAt.split("T");
   const [h, m] = t.split(":");
 
-  return [
+  const r = [
     `> [${post.author.displayName} - @${post.author.handle}](https://bsky.app/profile/${post.author.handle}) **${d} ${
       [h, m].join(
         ":",
@@ -251,6 +301,8 @@ export const postToMd = (post: Post, handle: string): string => {
     ...richtext.split("\n").filter((l: string) => l.trim() !== ""),
     embeds,
   ].join("\n\n");
+
+  return r;
 };
 
 // await Deno.jupyter.display(
@@ -261,6 +313,5 @@ export const postToMd = (post: Post, handle: string): string => {
 // );
 export const downloadPostToMd = async (postUrl: string): Promise<string> => {
   const { posts, handle } = await downloadThread(postUrl);
-
   return posts.map((post) => postToMd(post, handle)).join("\n\n");
 };
