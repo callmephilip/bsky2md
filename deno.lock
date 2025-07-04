@@ -1,7 +1,7 @@
 {
-  "version": "4",
+  "version": "5",
   "specifiers": {
-    "jsr:@hono/hono@^4.6.13": "4.6.13",
+    "jsr:@hono/hono@^4.8.4": "4.8.4",
     "jsr:@mary/bluesky-client@~0.5.27": "0.5.27",
     "jsr:@std/assert@*": "1.0.9",
     "jsr:@std/dotenv@*": "0.225.3",
@@ -10,8 +10,8 @@
     "npm:showdown@^2.1.0": "2.1.0"
   },
   "jsr": {
-    "@hono/hono@4.6.13": {
-      "integrity": "198970fc6facf71a88ee57aa1ed32143b56bcb0f842fa965ca3ee7d6fdd21a8e"
+    "@hono/hono@4.8.4": {
+      "integrity": "dabc0ea1185040fc1e89abfe29906d9e3dd425a4c40f903f9ead78c48917da06"
     },
     "@mary/bluesky-client@0.5.27": {
       "integrity": "3b56bab15ea0de60ef5887e75e742793f683a9e3bee49bb9a608d672305f8c45"
@@ -91,10 +91,12 @@
       "integrity": "sha512-/6NVYu4U819R2pUIk79n67SYgJHWCce0a5xTP979WbNp0FL9MN1I1QK662IDU1b6JzKTvmhgI7T7JYIxBi3kMQ==",
       "dependencies": [
         "commander"
-      ]
+      ],
+      "bin": true
     },
     "tlds@1.255.0": {
-      "integrity": "sha512-tcwMRIioTcF/FcxLev8MJWxCp+GUALRhFEqbDoZrnowmKSGqPrl5pqS+Sut2m8BgJ6S4FExCSSpGffZ0Tks6Aw=="
+      "integrity": "sha512-tcwMRIioTcF/FcxLev8MJWxCp+GUALRhFEqbDoZrnowmKSGqPrl5pqS+Sut2m8BgJ6S4FExCSSpGffZ0Tks6Aw==",
+      "bin": true
     },
     "uint8arrays@3.0.0": {
       "integrity": "sha512-HRCx0q6O9Bfbp+HHSfQQKD7wU70+lydKVt4EghkdOvlK/NlrF90z+eXV34mUd48rNvVJXwkrMSPpCATkct8fJA==",
@@ -118,7 +120,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@hono/hono@^4.6.13",
+      "jsr:@hono/hono@^4.8.4",
       "jsr:@mary/bluesky-client@~0.5.27",
       "npm:showdown@^2.1.0"
     ]

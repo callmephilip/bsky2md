@@ -2,7 +2,7 @@
   "entrypoint": "./app.ts",
   "imports": {
     "@mary/bluesky-client": "jsr:@mary/bluesky-client@^0.5.27",
-    "hono": "jsr:@hono/hono@^4.6.13",
+    "hono": "jsr:@hono/hono@^4.8.4",
     "bsky2md/": "./bsky2md/",
     "showdown": "npm:showdown@^2.1.0"
   },
